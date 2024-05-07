@@ -3,22 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Todo List</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 </head>
 <body>
     <h1>Todo List</h1>
 
-    {% for collection in collections %}
-    	<h2>{{ collection.name }}</h2>
-    {% endfor %}
+    <div id="collections">
+        {% for collection in collections %}
+    	    <button hx-get="{% url 'get-tasks' collection.pk %}" hx-trigger="click" hx-target="#tasks">
+                {{ collection.name }}
+            </button>
+        {% endfor %}
+    </div>
 
 
-    <form method="post" action="{% url 'add-collection' %}">
+    <form method="post">
         {% csrf_token %}
 
         <input type="text" name="collection_name" id="">
-        <button type="submit">Ajouter</button>
+        <button type="submit"
+            hx-post="{% url 'add-collection' %}"
+            hx-target="#collections"
+            hx-swap="beforeend"
+        >
+            Ajouter
+        </button>
+    </form>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <input type="text" name="task-description">
+        <button type="submit"
+            hx-post="{% url 'add-task' %}"
+            hx-target="#tasks"
+            hx-swap="beforeend"
+        >
+            Ajouter
+        </button>
 
     </form>
 
+    <div id="tasks">
+        {% include 'tasks/tasks.html' with tasks=tasks %}
+    </div>
+
+
+    <script>
+        document.body.addEventListener("htmx:responseError", (event) => {
+            alert(event.detail.xhr.responseText)
+        })
+    </script>
 </body>
 </html>
